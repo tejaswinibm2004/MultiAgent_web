@@ -1,7 +1,11 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { store } from '../platform/services/store.js';
 import { MultiAgentOrchestrator } from '../platform/agents/orchestrator.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors());
@@ -9,6 +13,15 @@ app.use(express.json());
 
 const orchestrator = new MultiAgentOrchestrator(null);
 
+// Static SDK file serving
+app.get('/sdk/bug-shield-sdk.js', (req, res) => {
+  res.sendFile(path.join(__dirname, '../sdk/bug-shield-sdk.js'));
+});
+
+// Serve SaaS Platform Dashboard Static Files
+app.use(express.static(path.join(__dirname, '../platform/public')));
+
+// Issue Intake REST API
 app.post('/api/v1/issues', async (req, res) => {
   try {
     const { application_id, sdk_key, title, description, page_url, steps_to_reproduce, stack_trace, logs, browser_info } = req.body;
@@ -80,6 +93,11 @@ app.post('/api/v1/apps', (req, res) => {
     canaryThreshold: '99.5%'
   });
   res.json({ success: true, app: newApp });
+});
+
+// Serve Dashboard Index HTML on root path
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../platform/public/index.html'));
 });
 
 export default app;
