@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BugShield SaaS - Multi-Agent Intelligent Bug Detection & Deployment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-indigo: #6366f1;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #a855f7;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --accent-amber: #f59e0b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    header {
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 22px; color: white;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+    .brand-title { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; }
+    .brand-subtitle { font-size: 12px; color: var(--text-secondary); }
+    
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .demo-link {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .demo-link:hover { border-color: var(--accent-indigo); background: rgba(99, 102, 241, 0.15); }
+
+    .main-container { max-width: 1400px; margin: 32px auto; padding: 0 24px; }
+
+    /* Hero & Metrics Bar */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .metric-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-val { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; margin-top: 6px; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .section-title { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; margin: 0; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+    }
+
+    /* Multi-Agent Node Visualizer */
+    .pipeline-visualizer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 24px 0;
+      position: relative;
+    }
+    .pipeline-visualizer::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 40px; right: 40px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      z-index: 1;
+      transform: translateY(-50%);
+    }
+    .agent-node {
+      position: relative;
+      z-index: 2;
+      background: #0f172a;
+      border: 2px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px 14px;
+      width: 175px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .agent-node.active {
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+      transform: translateY(-4px);
+    }
+    .agent-node.completed {
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+    .agent-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      margin: 0 auto 8px auto;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .agent-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .agent-status-tag { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+
+    /* Admin Review Banner */
+    .admin-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15));
+      border: 1px solid #f59e0b;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-banner.show { display: flex; }
+    .btn-approve {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white; border: none; padding: 12px 24px; border-radius: 10px;
+      font-weight: 700; font-size: 14px; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Terminal Console */
+    .terminal-window {
+      background: #090d16;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      padding: 16px;
+      height: 220px;
+      overflow-y: auto;
+      color: #38bdf8;
+      margin-top: 16px;
+    }
+    .terminal-line { margin-bottom: 4px; line-height: 1.5; }
+
+    /* Diff View */
+    .diff-box {
+      background: #04070d;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      padding: 14px;
+      white-space: pre-wrap;
+      max-height: 160px;
+      overflow-y: auto;
+      color: #a7f3d0;
+    }
+
+    /* App Cards Table */
+    .app-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .app-title { font-weight: 700; font-size: 16px; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .badge-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-rose { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+    .badge-indigo { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+
+    .permission-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .perm-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px 8px; border-radius: 6px; font-size: 11px; color: var(--text-secondary);
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;
+    }
+    .data-table th, .data-table td {
+      padding: 12px; text-align: left; border-bottom: 1px solid var(--card-border);
+    }
+    .data-table th { color: var(--text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; }
+
+    .btn-action {
+      background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">BS</div>
+      <div>
+        <div class="brand-title">BugShield Platform</div>
+        <div class="brand-subtitle">Multi-Agent Intelligent Bug Detection & Secure Hot Deployment SaaS</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <button class="btn-action" onclick="openRegisterModal()" style="font-size: 13px; padding: 10px 18px;">+ Connect New Website</button>
+    </div>
+  </header>
+
+  <div class="main-container">
+
+    <!-- Key SaaS Metrics -->
+    <div class="metrics-bar">
+      <div class="metric-card">
+        <div class="metric-label">Registered Applications</div>
+        <div class="metric-val" style="color: #818cf8;" id="m-apps">0 Connected</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Reported End-User Issues</div>
+        <div class="metric-val" style="color: #38bdf8;" id="m-issues">0 Received</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">AI Patches Hot-Deployed</div>
+        <div class="metric-val" style="color: #34d399;" id="m-patches">0 Deployed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Canary Health Guarantee</div>
+        <div class="metric-val" style="color: #a78bfa;">99.9% Uptime</div>
+      </div>
+    </div>
+
+    <!-- Admin Review High Risk Banner -->
+    <div id="admin-review-banner" class="admin-banner">
+      <div>
+        <strong style="font-size: 16px; color: #fbbf24;">⚠️ High Risk Bug Fix Requires Customer Authorization</strong>
+        <p style="margin: 4px 0 0 0; font-size: 13px; color: #fde68a;">
+          Issue #<span id="banner-issue-id">---</span> modifies pricing/coupon calculation code. Pipeline paused for Governance Check.
+        </p>
+      </div>
+      <button class="btn-approve" onclick="approveHighRiskPatch()">Approve & Hot-Deploy Patch Live</button>
+    </div>
+
+    <!-- Live Multi-Agent Pipeline Visualizer Card -->
+    <div class="card" style="margin-bottom: 32px;">
+      <div class="section-header">
+        <h2 class="section-title">🤖 Live Multi-Agent Orchestrator Pipeline</h2>
+        <span id="pipeline-state-badge" class="badge badge-amber">Awaiting End-User Issue Report</span>
+      </div>
+
+      <!-- 3 Core Agents Visual Nodes -->
+      <div class="pipeline-visualizer" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="agent-node" id="node-agent-1">
+          <div class="agent-icon">🔍</div>
+          <div class="agent-title">Agent 1: Bug Detection & Verification</div>
+          <div class="agent-status-tag" id="status-agent-1">Idle</div>
+        </div>
+
+        <div class="agent-node" id="node-agent-2">
+          <div class="agent-icon">⚡</div>
+          <div class="agent-title">Agent 2: Patch Generation & Governance</div>
+          <div class="agent-status-tag" id="status-agent-2">Idle</div>
+        </div>
+
+        <div class="agent-node" id="node-agent-3">
+          <div class="agent-icon">🚀</div>
+          <div class="agent-title">Agent 3: CI/CD & Hot Deployment</div>
+          <div class="agent-status-tag" id="status-agent-3">Idle</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div>
+          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Real-Time Multi-Agent Logs Stream</label>
+          <div class="terminal-window" id="agent-logs-terminal">
+            <div class="terminal-line">[System] Multi-Agent Engine initialized on Port 3000. Listening for telemetry & webhooks...</div>
+          </div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Synthesized Patch Code Diff</label>
+          <div class="diff-box" id="patch-diff-box">
+            // No patch generated yet. Waiting for bug detection trigger...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboarded Applications & Issues Grid -->
+    <div class="grid-2">
+      <!-- Registered Customer Apps -->
+      <div class="card">
+        <div class="section-header">
+          <h2 class="section-title">📱 Registered Customer Applications</h2>
+          <button class="btn-action" onclick="openRegisterModal()">+ Register New App</button>
+        </div>
+        <div id="customer-apps-container">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Issues Management Feed -->
+      <div class="card">
+        <div class="section-header">
+          <h2 class="section-title">⚡ Active Unresolved Bug Feed</h2>
+          <button class="btn-action" onclick="loadIssues()">Refresh</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Application</th>
+              <th>Issue Summary</th>
+              <th>Risk</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="issues-table-body">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let activeIssueId = null;
+    let ws;
+
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+      ws.onopen = () => {
+        console.log('[WS] Connected to BugShield Multi-Agent Stream');
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        handleWsEvent(msg);
+      };
+
+      ws.onclose = () => setTimeout(connectWebSocket, 2000);
+    }
+
+    function handleWsEvent(msg) {
+      const { type, payload } = msg;
+
+      if (type === 'PIPELINE_STEP') {
+        updateStepUI(payload.step, payload.status, payload.result);
+      } else if (type === 'PIPELINE_LOGS') {
+        appendLogs(payload.logs);
+      } else if (type === 'PIPELINE_PAUSED') {
+        activeIssueId = payload.issueId;
+        document.getElementById('banner-issue-id').textContent = payload.issueId;
+        document.getElementById('admin-review-banner').classList.add('show');
+        document.getElementById('pipeline-state-badge').className = 'badge badge-amber';
+        document.getElementById('pipeline-state-badge').textContent = 'Paused (Awaiting Admin Review)';
+      } else if (type === 'ADMIN_APPROVED') {
+        document.getElementById('admin-review-banner').classList.remove('show');
+      } else if (type === 'PIPELINE_FINISHED') {
+        document.getElementById('pipeline-state-badge').className = 'badge badge-success';
+        document.getElementById('pipeline-state-badge').textContent = 'Resolved & Hot-Deployed Live';
+        loadIssues();
+        loadApps();
+      }
+    }
+
+    function updateStepUI(step, status, result) {
+      const stepNodeMap = {
+        'DETECTION': 'node-agent-1',
+        'RISK_ASSESSMENT': 'node-agent-2',
+        'PATCH_GENERATION': 'node-agent-2',
+        'CICD_PIPELINE': 'node-agent-3',
+        'CANARY_DEPLOYMENT': 'node-agent-3'
+      };
+
+      const stepStatusMap = {
+        'DETECTION': 'status-agent-1',
+        'RISK_ASSESSMENT': 'status-agent-2',
+        'PATCH_GENERATION': 'status-agent-2',
+        'CICD_PIPELINE': 'status-agent-3',
+        'CANARY_DEPLOYMENT': 'status-agent-3'
+      };
+
+      const nodeId = stepNodeMap[step];
+      const statusId = stepStatusMap[step];
+
+      if (nodeId) {
+        const node = document.getElementById(nodeId);
+        const statusEl = document.getElementById(statusId);
+
+        if (status === 'IN_PROGRESS') {
+          node.className = 'agent-node active';
+          statusEl.textContent = 'Analyzing...';
+        } else if (status === 'COMPLETED') {
+          node.className = 'agent-node completed';
+          statusEl.textContent = 'Completed';
+
+          if (step === 'PATCH_GENERATION' && result && result.diff) {
+            document.getElementById('patch-diff-box').textContent = result.diff;
+          }
+        }
+      }
+    }
+
+    function appendLogs(logsArray) {
+      const term = document.getElementById('agent-logs-terminal');
+      logsArray.forEach(l => {
+        const line = document.createElement('div');
+        line.className = 'terminal-line';
+        line.textContent = l;
+        term.appendChild(line);
+      });
+      term.scrollTop = term.scrollHeight;
+    }
+
+    async function approveHighRiskPatch() {
+      if (!activeIssueId) return;
+      try {
+        const res = await fetch(`/api/v1/issues/${activeIssueId}/approve`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('admin-review-banner').classList.remove('show');
+          alert('✅ Patch Authorized! Continuing automated CI/CD and Canary hot-deployment...');
+        }
+      } catch (err) {
+        alert('Approval Error: ' + err.message);
+      }
+    }
+
+    async function loadApps() {
+      try {
+        const res = await fetch('/api/v1/apps');
+        const apps = await res.json();
+        document.getElementById('m-apps').textContent = `${apps.length} Connected`;
+        
+        const container = document.getElementById('customer-apps-container');
+        if (!apps || apps.length === 0) {
+          container.innerHTML = '<div style="color: var(--text-secondary); text-align:center; padding: 24px; border: 1px dashed var(--card-border); border-radius: 12px; font-size:13px;">No websites connected yet. Click <strong>"+ Connect New Website"</strong> to register your website and generate your integration SDK key.</div>';
+          return;
+        }
+
+        container.innerHTML = apps.map(app => `
+          <div class="app-card">
+            <div class="app-header">
+              <div>
+                <div class="app-title">${app.name} <span style="font-size:12px; color:var(--accent-indigo);">(${app.id})</span></div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">SDK Key: <code style="color:#a7f3d0; background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">${app.sdkKey}</code></div>
+              </div>
+              <span class="badge badge-success">${app.status}</span>
+            </div>
+            <div style="font-size:12px; margin-top:8px;">
+              <div><strong>Repo:</strong> ${app.repoUrl}</div>
+              <div><strong>Jenkins Integration:</strong> ${app.jenkinsStatus}</div>
+              <div><strong>Docker Deployment:</strong> ${app.dockerStatus}</div>
+            </div>
+            <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.4); padding:10px 12px; border-radius:8px; border:1px solid var(--card-border);">
+              <div style="font-size:11px; color:var(--text-secondary); font-family:'Fira Code', monospace; flex:1; overflow-x:auto;">
+                &lt;script src="http://localhost:3000/sdk/bug-shield-sdk.js"&gt;&lt;/script&gt;<br/>
+                &lt;script&gt;BugShieldSDK.init({ appId: '${app.id}', sdkKey: '${app.sdkKey}' });&lt;/script&gt;
+              </div>
+              <button class="btn-action" onclick="copySnippet('${app.id}', '${app.sdkKey}', this)" style="font-size:12px; padding:6px 14px; white-space:nowrap; background:var(--accent-indigo);">📋 Copy Code</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading apps:', err);
+      }
+    }
+
+    function copySnippet(appId, sdkKey, btnEl) {
+      const code = '<script src="http://localhost:3000/sdk/bug-shield-sdk.js"><' + '/script>\n<script>\n  BugShieldSDK.init({\n    appId: "' + appId + '",\n    sdkKey: "' + sdkKey + '"\n  });\n<' + '/script>';
+      navigator.clipboard.writeText(code).then(() => {
+        if (btnEl) {
+          const orig = btnEl.innerHTML;
+          btnEl.innerHTML = '✅ Copied!';
+          btnEl.style.background = '#10b981';
+          setTimeout(() => {
+            btnEl.innerHTML = orig;
+            btnEl.style.background = 'var(--accent-indigo)';
+          }, 2000);
+        } else {
+          alert('✅ Integration snippet copied to clipboard!');
+        }
+      }).catch(() => {
+        prompt('Copy your integration snippet:', code);
+      });
+    }
+
+    async function openRegisterModal() {
+      const name = prompt("Enter Website / Application Name:", "My New Website");
+      if (!name) return;
+      try {
+        const res = await fetch('/api/v1/apps', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            type: 'Web Application',
+            repoUrl: 'https://github.com/my-org/' + name.toLowerCase().replace(/\s+/g, '-'),
+            permissions: { issueAccess: true, repoAccess: true, deploymentAccess: true }
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.app) {
+          const app = data.app;
+          copySnippet(app.id, app.sdkKey);
+          loadApps();
+        }
+      } catch (err) {
+        alert("Error registering app: " + err.message);
+      }
+    }
+
+    async function loadIssues() {
+      try {
+        const res = await fetch('/api/v1/issues');
+        const issues = await res.json();
+        document.getElementById('m-issues').textContent = `${issues.length} Received`;
+        const resolved = issues.filter(i => i.status === 'RESOLVED_AND_DEPLOYED');
+        document.getElementById('m-patches').textContent = `${resolved.length} Deployed`;
+
+        const tbody = document.getElementById('issues-table-body');
+        if (issues.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="color: var(--text-secondary); text-align:center;">No issues reported yet. Click "Report an Issue" on QuickShop or BiteDash.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = issues.map(i => {
+          let statusBadgeClass = 'badge-amber';
+          let statusLabel = i.status;
+
+          if (i.status === 'RESOLVED_AND_DEPLOYED') {
+            statusBadgeClass = 'badge-success';
+          } else if (i.status === 'INVALID_REPORT') {
+            statusBadgeClass = 'badge-rose';
+            statusLabel = 'INVALID REPORT (NO BUG)';
+          }
+
+          let riskBadgeClass = i.riskLevel === 'HIGH' ? 'badge-amber' : (i.riskLevel === 'NONE' ? 'badge-indigo' : 'badge-success');
+
+          return `
+            <tr>
+              <td><strong>#${i.id}</strong></td>
+              <td>${i.applicationId}</td>
+              <td>${i.title}</td>
+              <td><span class="badge ${riskBadgeClass}">${i.riskLevel || 'NONE'}</span></td>
+              <td><span class="badge ${statusBadgeClass}">${statusLabel}</span></td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Error loading issues:', err);
+      }
+    }
+
+    window.onload = () => {
+      connectWebSocket();
+      loadApps();
+      loadIssues();
+      setInterval(loadIssues, 3000);
+    };
+  </script>
+</body>
+</html>

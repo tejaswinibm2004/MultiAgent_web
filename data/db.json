@@ -1,0 +1,15 @@
+{
+  "customers": [
+    {
+      "id": "CUST-001",
+      "name": "Acme Software Labs",
+      "email": "owner@acme.com",
+      "apiKey": "sk_live_acme_89f123490abc",
+      "createdAt": "2026-08-10T03:54:14.101Z"
+    }
+  ],
+  "applications": [],
+  "issues": [],
+  "patches": [],
+  "pipelines": []
+}

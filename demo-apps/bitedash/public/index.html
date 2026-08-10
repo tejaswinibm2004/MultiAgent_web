@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteDash - Food Delivery Demo App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0c0a09 0%, #1c1917 100%);
+      --card-bg: rgba(44, 36, 32, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-primary: #f97316;
+      --accent-hover: #ea580c;
+      --accent-glow: rgba(249, 115, 22, 0.4);
+      --text-main: #fafaf9;
+      --text-muted: #a8a29e;
+      --success: #10b981;
+    }
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    header {
+      background: rgba(28, 25, 23, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #f97316, #ef4444);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 20px; color: white;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+    .brand-name { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; }
+    .customer-badge {
+      background: rgba(249, 115, 22, 0.15);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      color: #fb923c; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .container { max-width: 1000px; margin: 32px auto; padding: 0 24px; }
+    .demo-bar {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 14px; padding: 16px 20px; margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .demo-bar p { margin: 0; font-size: 14px; color: #fbbf24; }
+    .demo-bug-btn {
+      background: #7c2d12; border: 1px solid #ea580c; color: #ffedd5;
+      padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 24px; backdrop-filter: blur(10px);
+    }
+    .card-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 20px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .menu-item {
+      background: rgba(28, 25, 23, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 14px; padding: 16px; display: flex; gap: 14px; align-items: center;
+    }
+    .menu-icon { font-size: 36px; }
+    .menu-info { flex: 1; }
+    .menu-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .menu-price { font-weight: 700; color: #fb923c; font-size: 15px; }
+
+    .slider-group { margin: 20px 0; }
+    .slider-label { display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+    .distance-range { width: 100%; accent-color: var(--accent-primary); }
+
+    .btn-order {
+      width: 100%; background: linear-gradient(135deg, #f97316, #ea580c);
+      color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer;
+      box-shadow: 0 4px 15px var(--accent-glow); margin-top: 12px;
+    }
+    .status-msg { padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; }
+    .status-msg.success { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; display: block; }
+    .status-msg.error { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; display: block; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">BD</div>
+      <div>
+        <div class="brand-name">BiteDash Express</div>
+        <span class="customer-badge">Target Application #2 (Port 3002)</span>
+      </div>
+    </div>
+    <div>
+      <a href="http://localhost:3000" target="_blank" style="color: #fb923c; text-decoration: none; font-weight: 600; font-size: 14px;">
+        Open SaaS Dashboard ↗
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="demo-bar">
+      <div>
+        <strong>🧪 Demo Simulator Controls:</strong>
+        <p>Select distance > 10 km to trigger Bug C (undefined multiplier 500 error).</p>
+      </div>
+      <button class="demo-bug-btn" onclick="triggerBugC()">🐞 Bug C: Distance > 10km Delivery Fee Crash</button>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Artisan Burger House Menu</h2>
+      <div class="menu-grid">
+        <div class="menu-item">
+          <div class="menu-icon">🍔</div>
+          <div class="menu-info">
+            <div class="menu-name">Truffle Smash Burger</div>
+            <div class="menu-price">$14.99</div>
+          </div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">🍟</div>
+          <div class="menu-info">
+            <div class="menu-name">Loaded Curly Fries</div>
+            <div class="menu-price">$6.50</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Delivery Distance:</span>
+          <span id="dist-val" style="color: #fb923c;">12 km</span>
+        </div>
+        <input type="range" id="dist-slider" class="distance-range" min="1" max="25" value="12" oninput="updateDistance(this.value)" />
+      </div>
+
+      <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 10px; margin-bottom: 16px; font-size: 14px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span>Food Subtotal:</span><span>$21.49</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>Calculated Delivery Fee:</span><span id="fee-val" style="font-weight:700; color:#fb923c;">Calculated on server...</span>
+        </div>
+      </div>
+
+      <button class="btn-order" onclick="placeFoodOrder()">Place Instant Delivery Order</button>
+      <div id="status-msg" class="status-msg"></div>
+    </div>
+  </div>
+
+  <script src="/sdk/bug-shield-sdk.js"></script>
+  <script>
+    function updateDistance(val) {
+      document.getElementById('dist-val').textContent = val + ' km';
+      calculateFee(val);
+    }
+
+    async function calculateFee(km) {
+      try {
+        const res = await fetch('/api/delivery-fee?distance=' + km);
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('fee-val').textContent = '$' + data.fee.toFixed(2);
+        } else {
+          document.getElementById('fee-val').textContent = 'Error: 500 Internal Server Error';
+        }
+      } catch (err) {
+        document.getElementById('fee-val').textContent = 'Calculation Error';
+      }
+    }
+
+    async function placeFoodOrder() {
+      const km = document.getElementById('dist-slider').value;
+      const msgDiv = document.getElementById('status-msg');
+      try {
+        const res = await fetch('/api/delivery-fee?distance=' + km);
+        const data = await res.json();
+        if (data.success) {
+          msgDiv.className = 'status-msg success';
+          msgDiv.textContent = `✅ Order Placed! Delivery distance ${km}km verified. Delivery Fee: $${data.fee.toFixed(2)}`;
+        } else {
+          msgDiv.className = 'status-msg error';
+          msgDiv.textContent = `❌ Server Error (HTTP 500): ${data.error}`;
+        }
+      } catch (err) {
+        msgDiv.className = 'status-msg error';
+        msgDiv.textContent = 'Network Error: ' + err.message;
+      }
+    }
+
+    function triggerBugC() {
+      document.getElementById('dist-slider').value = 14;
+      updateDistance(14);
+      document.querySelector('.bugshield-floating-btn').click();
+      setTimeout(() => {
+        document.getElementById('bs-title').value = "500 Internal Server Error when selecting delivery distance over 10km";
+        document.getElementById('bs-desc').value = "Selecting a delivery distance greater than 10km throws an unhandled TypeError on server: Cannot read properties of undefined (reading multiplier) in deliveryService.js.";
+        document.getElementById('bs-steps').value = "1. Set delivery slider to 14 km\n2. Attempt order\n3. 500 Internal Server Error occurs";
+      }, 200);
+    }
+
+    window.onload = () => {
+      if (window.BugShieldSDK) {
+        window.BugShieldSDK.init({
+          appId: 'APP-FOOD-02',
+          sdkKey: 'sdk_app_food_02_live',
+          endpoint: 'http://localhost:3000/api/v1/issues'
+        });
+      }
+      updateDistance(12);
+    };
+  </script>
+</body>
+</html>

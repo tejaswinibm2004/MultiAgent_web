@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/platform.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/sdk/bug-shield-sdk.js",
+      "dest": "sdk/bug-shield-sdk.js"
+    },
+    {
+      "src": "/api/v1/(.*)",
+      "dest": "/api/platform.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/platform/public/$1"
+    }
+  ]
+}

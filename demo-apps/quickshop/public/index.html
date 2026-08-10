@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickShop - Modern E-Commerce Demo App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #090d16 0%, #111827 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-primary: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: white;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+    .brand-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .customer-badge {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 32px;
+    }
+    .demo-bar {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .demo-bar p { margin: 0; font-size: 14px; color: #fbbf24; }
+    .demo-btn-group { display: flex; gap: 10px; }
+    .demo-bug-btn {
+      background: #7c2d12;
+      border: 1px solid #ea580c;
+      color: #ffedd5;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .demo-bug-btn:hover { background: #9a3412; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .product-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .product-img {
+      width: 100%;
+      height: 120px;
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    .product-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+    .product-price { font-weight: 700; color: #818cf8; font-size: 16px; margin-bottom: 12px; }
+    .btn-add {
+      width: 100%;
+      background: var(--accent-primary);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .cart-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .cart-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .cart-row.total {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      border-top: 1px solid var(--card-border);
+      padding-top: 12px;
+    }
+    .btn-checkout {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      margin-top: 12px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .coupon-input {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: white;
+      outline: none;
+    }
+    .btn-apply {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .orders-table th, .orders-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .orders-table th { color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+    .badge-paid {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .status-msg {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+    .status-msg.success { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; display: block; }
+    .status-msg.error { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; display: block; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">QS</div>
+      <div>
+        <div class="brand-name">QuickShop Store</div>
+        <span class="customer-badge">Target Application #1 (Port 3001)</span>
+      </div>
+    </div>
+    <div>
+      <a href="http://localhost:3000" target="_blank" style="color: #818cf8; text-decoration: none; font-weight: 600; font-size: 14px;">
+        Open SaaS Dashboard ↗
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Demo Helper Bar -->
+    <div class="demo-bar">
+      <div>
+        <strong>🧪 Demo Simulator Controls:</strong>
+        <p>Use these buttons to quickly trigger intentionally introduced bugs for testing BugShield Multi-Agent hot-patching.</p>
+      </div>
+      <div class="demo-btn-group">
+        <button class="demo-bug-btn" onclick="triggerBugA()">🐞 Bug A: Payment Success but Order Missing (Low Risk)</button>
+        <button class="demo-bug-btn" onclick="triggerBugB()">🐞 Bug B: Discount Math NaN Bug (High Risk)</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Main Catalog -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="card">
+          <h2 class="card-title">Featured Products</h2>
+          <div class="products-grid">
+            <div class="product-card">
+              <div class="product-img">🎧</div>
+              <div class="product-title">Noise-Cancel Headphones</div>
+              <div class="product-price">$199.99</div>
+              <button class="btn-add" onclick="addToCart('Noise-Cancel Headphones', 199.99)">Add to Cart</button>
+            </div>
+            <div class="product-card">
+              <div class="product-img">⌚</div>
+              <div class="product-title">Smart Fitness Watch</div>
+              <div class="product-price">$149.50</div>
+              <button class="btn-add" onclick="addToCart('Smart Fitness Watch', 149.50)">Add to Cart</button>
+            </div>
+            <div class="product-card">
+              <div class="product-img">⌨️</div>
+              <div class="product-title">Mechanical Keyboard</div>
+              <div class="product-price">$89.00</div>
+              <button class="btn-add" onclick="addToCart('Mechanical Keyboard', 89.00)">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">
+            <span>Customer Order History</span>
+            <button onclick="loadOrders()" style="background: none; border: 1px solid var(--card-border); color: #818cf8; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;">Refresh Orders</button>
+          </h2>
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Created At</th>
+              </tr>
+            </thead>
+            <tbody id="orders-list">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Cart Sidebar -->
+      <div class="card">
+        <h2 class="card-title">Your Cart</h2>
+        <div id="cart-items-list" style="margin-bottom: 16px; font-size: 14px;">
+          <!-- Cart items -->
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="coupon-code" class="coupon-input" placeholder="Promo code (e.g. SAVE100)" />
+          <button class="btn-apply" onclick="applyCoupon()">Apply</button>
+        </div>
+
+        <div class="cart-summary">
+          <div class="cart-row"><span>Subtotal:</span><span id="subtotal-val">$0.00</span></div>
+          <div class="cart-row"><span>Discount:</span><span id="discount-val">-$0.00</span></div>
+          <div class="cart-row total"><span>Total Payable:</span><span id="total-val">$0.00</span></div>
+        </div>
+
+        <button class="btn-checkout" onclick="performCheckout()">Proceed to Payment & Checkout</button>
+        <div id="status-msg" class="status-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Embedded BugShield SaaS SDK -->
+  <script src="/sdk/bug-shield-sdk.js"></script>
+  <script>
+    let cart = [
+      { name: 'Smart Fitness Watch', price: 149.50 }
+    ];
+    let discountAmount = 0;
+
+    function renderCart() {
+      const list = document.getElementById('cart-items-list');
+      if (cart.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-muted);">Cart is currently empty.</p>';
+        document.getElementById('subtotal-val').textContent = '$0.00';
+        document.getElementById('total-val').textContent = '$0.00';
+        return;
+      }
+      list.innerHTML = cart.map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>${i.name}</span><span>$${i.price.toFixed(2)}</span></div>`).join('');
+      const subtotal = cart.reduce((a, b) => a + b.price, 0);
+      document.getElementById('subtotal-val').textContent = '$' + subtotal.toFixed(2);
+      const total = Math.max(0, subtotal - discountAmount);
+      document.getElementById('total-val').textContent = Number.isNaN(total) ? 'NaN (ERROR)' : '$' + total.toFixed(2);
+    }
+
+    function addToCart(name, price) {
+      cart.push({ name, price });
+      renderCart();
+    }
+
+    async function applyCoupon() {
+      const code = document.getElementById('coupon-code').value.trim();
+      const subtotal = cart.reduce((a, b) => a + b.price, 0);
+      try {
+        const res = await fetch('/api/coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subtotal, code })
+        });
+        const data = await res.json();
+        if (data.success) {
+          discountAmount = data.discount;
+          renderCart();
+          showStatus('Coupon applied successfully!', 'success');
+        } else {
+          showStatus(data.error || 'Failed to apply coupon', 'error');
+        }
+      } catch (err) {
+        showStatus('Coupon Error: ' + err.message, 'error');
+      }
+    }
+
+    async function performCheckout() {
+      if (!cart || cart.length === 0) {
+        showStatus('❌ Your cart is empty! Please add items before proceeding to checkout.', 'error');
+        return;
+      }
+
+      const subtotal = cart.reduce((a, b) => a + b.price, 0);
+      const total = Math.max(0, subtotal - discountAmount);
+      const msgDiv = document.getElementById('status-msg');
+
+      showStatus('Processing Payment via Visa Gateway...', 'success');
+
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart, total })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showStatus(`✅ Payment Completed for Order #${data.orderId}! Checking order history...`, 'success');
+          cart = [];
+          discountAmount = 0;
+          renderCart();
+          setTimeout(loadOrders, 500);
+        } else {
+          showStatus('Checkout Error: ' + data.error, 'error');
+        }
+      } catch (err) {
+        showStatus('Fatal Checkout Error: ' + err.message, 'error');
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+        const tbody = document.getElementById('orders-list');
+        if (orders.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="color: var(--text-muted); text-align:center;">No orders found in database.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = orders.map(o => `
+          <tr>
+            <td><strong>${o.id}</strong></td>
+            <td>${o.itemsCount} items</td>
+            <td>$${Number(o.total).toFixed(2)}</td>
+            <td><span class="badge-paid">${o.status}</span></td>
+            <td>${new Date(o.createdAt).toLocaleTimeString()}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading orders:', err);
+      }
+    }
+
+    function showStatus(text, type) {
+      const div = document.getElementById('status-msg');
+      div.textContent = text;
+      div.className = 'status-msg ' + type;
+    }
+
+    function triggerBugA() {
+      document.querySelector('.bugshield-floating-btn').click();
+      setTimeout(() => {
+        document.getElementById('bs-title').value = "Payment completed but order is missing from order history";
+        document.getElementById('bs-desc').value = "I completed the checkout payment on QuickShop. The payment confirmation popup showed success, but when I check my Customer Order History table, the new order is completely missing!";
+        document.getElementById('bs-steps').value = "1. Add item to cart\n2. Click Proceed to Payment\n3. Payment succeeds but order is not saved to database";
+      }, 200);
+    }
+
+    function triggerBugB() {
+      document.querySelector('.bugshield-floating-btn').click();
+      setTimeout(() => {
+        document.getElementById('bs-title').value = "Coupon code SAVE100 causes Total Payable to show NaN";
+        document.getElementById('bs-desc').value = "Entering promo code SAVE100 causes the discount calculation engine to divide by zero, resulting in total payable being set to NaN or negative values.";
+        document.getElementById('bs-steps').value = "1. Enter coupon SAVE100\n2. Click Apply\n3. Total becomes NaN";
+      }, 200);
+    }
+
+    // Initialize BugShield SDK
+    window.onload = () => {
+      if (window.BugShieldSDK) {
+        window.BugShieldSDK.init({
+          appId: 'APP-SHOP-01',
+          sdkKey: 'sdk_app_shop_01_live',
+          endpoint: 'http://localhost:3000/api/v1/issues'
+        });
+      }
+      loadOrders();
+      renderCart();
+    };
+  </script>
+</body>
+</html>
