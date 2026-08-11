@@ -373,12 +373,14 @@
   </div>
 
   <script>
+    const BACKEND_URL = window.BACKEND_URL || window.location.origin;
     let activeIssueId = null;
     let ws;
 
     function connectWebSocket() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      ws = new WebSocket(`${protocol}//${window.location.host}`);
+      const backendHost = BACKEND_URL.replace(/^https?:\/\//, '');
+      const protocol = BACKEND_URL.startsWith('https:') ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${backendHost}`);
 
       ws.onopen = () => {
         console.log('[WS] Connected to BugShield Multi-Agent Stream');
@@ -506,7 +508,7 @@
             </div>
             <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.4); padding:10px 12px; border-radius:8px; border:1px solid var(--card-border);">
               <div style="font-size:11px; color:var(--text-secondary); font-family:'Fira Code', monospace; flex:1; overflow-x:auto;">
-                &lt;script src="http://localhost:3000/sdk/bug-shield-sdk.js"&gt;&lt;/script&gt;<br/>
+                &lt;script src="${BACKEND_URL}/sdk/bug-shield-sdk.js"&gt;&lt;/script&gt;<br/>
                 &lt;script&gt;BugShieldSDK.init({ appId: '${app.id}', sdkKey: '${app.sdkKey}' });&lt;/script&gt;
               </div>
               <button class="btn-action" onclick="copySnippet('${app.id}', '${app.sdkKey}', this)" style="font-size:12px; padding:6px 14px; white-space:nowrap; background:var(--accent-indigo);">📋 Copy Code</button>
@@ -519,7 +521,7 @@
     }
 
     function copySnippet(appId, sdkKey, btnEl) {
-      const code = '<script src="http://localhost:3000/sdk/bug-shield-sdk.js"><' + '/script>\n<script>\n  BugShieldSDK.init({\n    appId: "' + appId + '",\n    sdkKey: "' + sdkKey + '"\n  });\n<' + '/script>';
+      const code = '<script src="' + BACKEND_URL + '/sdk/bug-shield-sdk.js"><' + '/script>\n<script>\n  BugShieldSDK.init({\n    appId: "' + appId + '",\n    sdkKey: "' + sdkKey + '"\n  });\n<' + '/script>';
       navigator.clipboard.writeText(code).then(() => {
         if (btnEl) {
           const orig = btnEl.innerHTML;

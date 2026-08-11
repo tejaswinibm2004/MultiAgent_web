@@ -72,7 +72,7 @@ platformApp.post('/api/v1/issues', async (req, res) => {
       success: true,
       issueId,
       status: 'RECEIVED',
-      trackingUrl: `http://localhost:3000/#issue-${issueId}`,
+      trackingUrl: `${req.protocol}://${req.get('host')}/#issue-${issueId}`,
       message: 'Issue report accepted. Multi-Agent pipeline initiated.'
     });
   } catch (err) {

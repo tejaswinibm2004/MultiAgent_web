@@ -10,7 +10,9 @@
     init(config = {}) {
       this.appId = config.appId || 'APP-UNKNOWN';
       this.sdkKey = config.sdkKey || '';
-      this.endpoint = config.endpoint || 'http://localhost:3000/api/v1/issues';
+      const currentScript = document.currentScript || Array.from(document.scripts).find(s => s.src && s.src.includes('bug-shield-sdk.js'));
+      const defaultHost = currentScript ? new URL(currentScript.src).origin : window.location.origin;
+      this.endpoint = config.endpoint || `${defaultHost}/api/v1/issues`;
       this.logs = [];
 
       this.interceptConsole();
