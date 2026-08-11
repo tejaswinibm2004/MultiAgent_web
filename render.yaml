@@ -1,10 +1,11 @@
 services:
   - type: web
     name: bugshield-backend
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
-        value: 22.5.0
+        value: 22
+
