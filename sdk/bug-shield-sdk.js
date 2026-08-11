@@ -12,9 +12,16 @@
       this.sdkKey = config.sdkKey || '';
       const currentScript = document.currentScript || Array.from(document.scripts).find(s => s.src && s.src.includes('bug-shield-sdk.js'));
       const defaultHost = currentScript ? new URL(currentScript.src).origin : window.location.origin;
-      this.endpoint = config.endpoint || `${defaultHost}/api/v1/issues`;
+      let endpoint = config.endpoint || `${defaultHost}/api/v1/issues`;
+
+      // Automatic Mixed Content Protection (upgrade http:// to https:// on HTTPS websites)
+      if (window.location.protocol === 'https:' && endpoint.startsWith('http://') && !endpoint.includes('localhost')) {
+        endpoint = endpoint.replace('http://', 'https://');
+      }
+      this.endpoint = endpoint;
       this.logs = [];
 
+      console.log(`[BugShield SDK] Active for App: ${this.appId} | Endpoint: ${this.endpoint}`);
       this.interceptConsole();
       this.renderWidget();
     }
