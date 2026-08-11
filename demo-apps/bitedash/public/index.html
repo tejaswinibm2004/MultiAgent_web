@@ -207,11 +207,11 @@
     function triggerBugC() {
       document.getElementById('dist-slider').value = 14;
       updateDistance(14);
-      document.querySelector('.bugshield-floating-btn').click();
+      const btn = document.querySelector('.bugshield-floating-btn');
+      if (btn) btn.click();
       setTimeout(() => {
-        document.getElementById('bs-title').value = "500 Internal Server Error when selecting delivery distance over 10km";
-        document.getElementById('bs-desc').value = "Selecting a delivery distance greater than 10km throws an unhandled TypeError on server: Cannot read properties of undefined (reading multiplier) in deliveryService.js.";
-        document.getElementById('bs-steps').value = "1. Set delivery slider to 14 km\n2. Attempt order\n3. 500 Internal Server Error occurs";
+        const el = document.getElementById('bs-issue-input');
+        if (el) el.value = "500 Internal Server Error when selecting delivery distance over 10km";
       }, 200);
     }
 
@@ -219,8 +219,7 @@
       if (window.BugShieldSDK) {
         window.BugShieldSDK.init({
           appId: 'APP-FOOD-02',
-          sdkKey: 'sdk_app_food_02_live',
-          endpoint: 'http://localhost:3000/api/v1/issues'
+          sdkKey: 'sdk_app_food_02_live'
         });
       }
       updateDistance(12);

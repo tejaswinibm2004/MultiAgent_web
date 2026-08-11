@@ -470,20 +470,20 @@
     }
 
     function triggerBugA() {
-      document.querySelector('.bugshield-floating-btn').click();
+      const btn = document.querySelector('.bugshield-floating-btn');
+      if (btn) btn.click();
       setTimeout(() => {
-        document.getElementById('bs-title').value = "Payment completed but order is missing from order history";
-        document.getElementById('bs-desc').value = "I completed the checkout payment on QuickShop. The payment confirmation popup showed success, but when I check my Customer Order History table, the new order is completely missing!";
-        document.getElementById('bs-steps').value = "1. Add item to cart\n2. Click Proceed to Payment\n3. Payment succeeds but order is not saved to database";
+        const el = document.getElementById('bs-issue-input');
+        if (el) el.value = "Payment completed but order is missing from customer order history";
       }, 200);
     }
 
     function triggerBugB() {
-      document.querySelector('.bugshield-floating-btn').click();
+      const btn = document.querySelector('.bugshield-floating-btn');
+      if (btn) btn.click();
       setTimeout(() => {
-        document.getElementById('bs-title').value = "Coupon code SAVE100 causes Total Payable to show NaN";
-        document.getElementById('bs-desc').value = "Entering promo code SAVE100 causes the discount calculation engine to divide by zero, resulting in total payable being set to NaN or negative values.";
-        document.getElementById('bs-steps').value = "1. Enter coupon SAVE100\n2. Click Apply\n3. Total becomes NaN";
+        const el = document.getElementById('bs-issue-input');
+        if (el) el.value = "Coupon code SAVE100 causes Total Payable to show NaN error";
       }, 200);
     }
 
@@ -492,8 +492,7 @@
       if (window.BugShieldSDK) {
         window.BugShieldSDK.init({
           appId: 'APP-SHOP-01',
-          sdkKey: 'sdk_app_shop_01_live',
-          endpoint: 'http://localhost:3000/api/v1/issues'
+          sdkKey: 'sdk_app_shop_01_live'
         });
       }
       loadOrders();

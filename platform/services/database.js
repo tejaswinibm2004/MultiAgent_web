@@ -120,7 +120,7 @@ function autoMigrateLegacyData() {
     }
   }
 
-  if (!initialData) {
+  if (!initialData || !initialData.applications || initialData.applications.length === 0) {
     initialData = {
       customers: [
         {
@@ -131,7 +131,38 @@ function autoMigrateLegacyData() {
           createdAt: new Date().toISOString()
         }
       ],
-      applications: [],
+      applications: [
+        {
+          id: 'APP-SHOP-01',
+          customerId: 'CUST-001',
+          name: 'QuickShop E-Commerce Store',
+          type: 'Node.js Web App',
+          port: 3001,
+          repoUrl: 'https://github.com/acme/quickshop-app',
+          branch: 'main',
+          status: 'Connected',
+          sdkKey: 'sdk_app_shop_01_live',
+          permissions: { issueAccess: true, repoAccess: true, deploymentAccess: true },
+          jenkinsStatus: 'Connected & Verified',
+          dockerStatus: 'Containerized (Active)',
+          canaryThreshold: '99.5%'
+        },
+        {
+          id: 'APP-FOOD-02',
+          customerId: 'CUST-001',
+          name: 'BiteDash Express Delivery',
+          type: 'Node.js Web App',
+          port: 3002,
+          repoUrl: 'https://github.com/acme/bitedash-app',
+          branch: 'main',
+          status: 'Connected',
+          sdkKey: 'sdk_app_food_02_live',
+          permissions: { issueAccess: true, repoAccess: true, deploymentAccess: true },
+          jenkinsStatus: 'Connected & Verified',
+          dockerStatus: 'Containerized (Active)',
+          canaryThreshold: '99.0%'
+        }
+      ],
       issues: [],
       patches: [],
       pipelines: []
