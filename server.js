@@ -85,6 +85,11 @@ platformApp.get('/api/v1/issues', (req, res) => {
   res.json(store.getIssues());
 });
 
+platformApp.get('/api/v1/issues/:id/patch', (req, res) => {
+  const patch = store.getPatch(req.params.id);
+  res.json(patch || null);
+});
+
 platformApp.post('/api/v1/issues/:id/approve', async (req, res) => {
   const { id } = req.params;
   console.log(`\n[SaaS Platform] Admin Approved High-Risk Patch for Issue #${id}`);

@@ -1,0 +1,189 @@
+====================================================================================================
+BUGSHIELD SAAS PLATFORM - MULTI-AGENT INTELLIGENT BUG DETECTION & SECURE HOT DEPLOYMENT
+====================================================================================================
+
+1. PROJECT OVERVIEW
+----------------------------------------------------------------------------------------------------
+BugShield is an autonomous, multi-agent SaaS platform designed to monitor web applications in 
+real-time, automatically detect bugs reported by end-users or system telemetry, evaluate security and
+monetary risks, generate syntactically validated code patches, execute automated CI/CD builds and 
+synthetic canary testing, and perform zero-downtime hot deployments while committing and pushing 
+fixes directly to customer GitHub repositories.
+
+Architecture Stack:
+- Client SDK: Lightweight browser integration widget (`sdk/bug-shield-sdk.js`)
+- Backend Engine: Node.js (ES Modules), Express.js REST API, WebSockets (`ws`)
+- Persistence Layer: Embedded SQLite (`node:sqlite DatabaseSync`) with automated schema migrations
+- Multi-Agent System: 5 Specialized Autonomous AI Agents orchestrated by `MultiAgentOrchestrator`
+- Governance: Human-in-the-Loop Admin Approval Gate for High-Risk modifications
+- Deployment: Zero-downtime in-memory source hot-patching + Automated Git CLI Push
+
+
+2. THE 5 AUTONOMOUS AI AGENTS
+----------------------------------------------------------------------------------------------------
+1. Bug Detection & Root Cause Agent (AGENT-DETECTOR-01)
+   - Function: Inspects issue titles, descriptions, telemetry logs, and stack traces.
+   - Action: Performs AST code analysis against live customer source files to verify if a genuine bug
+     exists or if the issue has already been patched.
+
+2. Risk Classification & Governance Agent (AGENT-RISK-02)
+   - Function: Evaluates operational, monetary, and security risk scores (0 to 100).
+   - Action: Classifies issues into LOW RISK (auto-promoted) vs HIGH RISK (requires manual Customer 
+     Admin authorization prior to deployment).
+
+3. Patch Generation & Remediation Agent (AGENT-PATCH-03)
+   - Function: Synthesizes precise code fixes for target source files.
+   - Action: Validates JavaScript AST syntax using runtime compilation checks (`new Function(...)`) 
+     and produces unified Git diffs (`--- a/file +++ b/file`).
+
+4. Security & CI/CD Pipeline Agent (AGENT-PIPELINE-04)
+   - Function: Runs OWASP SAST security scans, automated unit regression suites, and Jenkins builds.
+   - Action: Packages and signs Docker artifacts for containerized deployment.
+
+5. Canary Testing & Hot Deployment Agent (AGENT-CANARY-05)
+   - Function: Routes 10% canary traffic to new build containers and executes synthetic health probes.
+   - Action: Upon 0% error rate verification, hot-patches live application files on disk without server 
+     downtime, and executes automated `git commit` and `git push origin main` to GitHub.
+
+
+3. STEP-BY-STEP DEMONSTRATED SAMPLE WORKFLOW
+----------------------------------------------------------------------------------------------------
+Below is the complete, high-detail step-by-step workflow demonstrated when an end-user encounters an 
+issue on a connected customer website (e.g. "online shop for grossaries" - APP-618):
+
+----------------------------------------------------------------------------------------------------
+STEP 1: ISSUE REPORTING VIA CLIENT INTEGRATION SDK
+----------------------------------------------------------------------------------------------------
+- An end user browsing the customer website clicks "Report an Issue" on the embedded BugShield widget.
+- User submits: "Coupon Code logic missing discount calculation".
+- The SDK intercepts browser console errors, collects user agent telemetry, and sends a POST request 
+  to `http://localhost:3000/api/v1/issues`.
+- Payload:
+  {
+    "application_id": "APP-618",
+    "sdk_key": "sdk_app_618_live",
+    "title": "Coupon Code logic missing discount calculation",
+    "description": "calculation error",
+    "page_url": "/checkout",
+    "browser_info": { "userAgent": "Chrome/120.0", "viewport": "1920x1080" }
+  }
+- Result: Server creates issue entry #ISSUE-1156 in SQLite database with status "RECEIVED" and 
+  initiates the Multi-Agent Orchestrator pipeline.
+
+----------------------------------------------------------------------------------------------------
+STEP 2: MULTI-AGENT PIPELINE INITIATION & REAL-TIME WEBSOCKET STREAM
+----------------------------------------------------------------------------------------------------
+- `orchestrator.processIssue("ISSUE-1156")` initializes a new pipeline run (`PIPE-1723456789`).
+- Status changed to "IN_ANALYSIS".
+- WebSocket broadcasts `PIPELINE_STEP` ("DETECTION", status: "IN_PROGRESS") to the SaaS dashboard UI.
+
+----------------------------------------------------------------------------------------------------
+STEP 3: ROOT CAUSE ANALYSIS & BUG DETECTION (AGENT-DETECTOR-01)
+----------------------------------------------------------------------------------------------------
+- Detector Agent analyzes issue keywords ("coupon", "discount", "calculation").
+- Maps issue to source file: `demo-apps/quickshop/src/couponService.js`.
+- Target function: `applyDiscount(subtotal, discountPercent)`.
+- Inspects code on disk: finds unhandled zero-division formula 
+  `const finalDiscount = (subtotal * discountPercent) / (100 - (discountPercent == 100 ? 100 : 0));`.
+- Result: Bug Verification PASSED. `isValidBug = true`. `bugType = "COUPON_CALCULATION_DIV_ZERO"`.
+
+----------------------------------------------------------------------------------------------------
+STEP 4: RISK CLASSIFICATION & GOVERNANCE GATE (AGENT-RISK-02)
+----------------------------------------------------------------------------------------------------
+- Risk Agent evaluates the impact of modifying `couponService.js`.
+- Calculates Risk Score: 85/100 -> Classification: HIGH RISK.
+- Reason: Modifies financial calculation engine and pricing logic.
+- Decision: Sets `requiresAdminApproval = true`.
+- Action: Orchestrator updates issue status to "AWAITING_ADMIN_APPROVAL", pauses pipeline, and 
+  broadcasts `PIPELINE_PAUSED` event to the SaaS Dashboard.
+- Dashboard Banner Displays: 
+  "⚠️ High Risk Bug Fix Requires Customer Authorization (#ISSUE-1156 modifies pricing code)."
+
+----------------------------------------------------------------------------------------------------
+STEP 5: HUMAN-IN-THE-LOOP CUSTOMER ADMIN AUTHORIZATION
+----------------------------------------------------------------------------------------------------
+- Customer Admin reviews the issue details on the BugShield SaaS Dashboard.
+- Admin clicks "Approve & Hot-Deploy Patch Live".
+- Dashboard sends POST request to `/api/v1/issues/ISSUE-1156/approve`.
+- Orchestrator receives authorization event, updates patch status to "APPROVED", and resumes pipeline.
+
+----------------------------------------------------------------------------------------------------
+STEP 6: CODE PATCH SYNTHESIS & AST VALIDATION (AGENT-PATCH-03)
+----------------------------------------------------------------------------------------------------
+- Patch Agent synthesizes zero-division guard patch for `couponService.js`:
+  ```javascript
+  // FIX: Validated percentage calculation with zero-division safety guard
+  if (!discountPercent || discountPercent <= 0) return subtotal;
+  const safePercent = Math.min(Math.max(discountPercent, 0), 100);
+  const discountAmount = (subtotal * safePercent) / 100;
+  const finalDiscount = Math.max(0, subtotal - discountAmount);
+  return Number.isNaN(finalDiscount) ? subtotal : finalDiscount;
+  ```
+- Evaluates AST syntax using `new Function(...)` check: PASSED (0 syntax errors).
+- Generates Unified Git Diff snippet and updates WebSocket stream.
+
+----------------------------------------------------------------------------------------------------
+STEP 7: SECURITY SAST AUDIT & CI/CD BUILD (AGENT-PIPELINE-04)
+----------------------------------------------------------------------------------------------------
+- Pipeline Agent runs OWASP static security check: 0 vulnerabilities found.
+- Runs unit test suite: 14/14 specs passing.
+- Triggers Jenkins build #4912 and packages signed Docker image:
+  `docker.io/acme-registry/online-shop-for-grossaries:patch-4912`.
+
+----------------------------------------------------------------------------------------------------
+STEP 8: CANARY PROBING & ZERO-DOWNTIME DEPLOYMENT (AGENT-CANARY-05)
+----------------------------------------------------------------------------------------------------
+- Canary Agent routes 10% production traffic to new container pod.
+- Fires 5 synthetic HTTP health probes (`GET /health`). Status: 200 OK (14ms latency).
+- Error Rate: 0.0%. Canary test PASSED!
+- Promotes build to 100% full live production traffic.
+- Overwrites live source file on disk (`demo-apps/quickshop/src/couponService.js`).
+
+----------------------------------------------------------------------------------------------------
+STEP 9: AUTOMATED GIT COMMIT & PUSH TO GITHUB REPOSITORY
+----------------------------------------------------------------------------------------------------
+- Canary Agent executes git CLI automation:
+  1. `git add demo-apps/quickshop/src/couponService.js`
+  2. `git commit -m "fix(bugshield): automated hot-patch fix for demo-apps/quickshop/src/couponService.js"`
+  3. `git push origin main`
+- Result: Fix commit is automatically pushed to customer GitHub repository 
+  (`https://github.com/tejaswinibm2004/MultiAgent_web.git`).
+
+----------------------------------------------------------------------------------------------------
+STEP 10: REAL-TIME DASHBOARD SYNCHRONIZATION & SOURCE CODE INSPECTOR
+----------------------------------------------------------------------------------------------------
+- Orchestrator updates issue status in SQLite DB to "RESOLVED_AND_DEPLOYED".
+- Dashboard updates status badge to green "Resolved & Hot-Deployed Live".
+- Admin/Developer clicks "🔍 View Code & Patch" on the Active Bug Feed table to open the Code Inspector Modal.
+- Inspector displays 3 interactive tabs:
+  - 🔀 Git Diff: Unified line-by-line diff with green (+) additions and red (-) deletions.
+  - ✨ Patched Code: Complete live source file containing the applied AI patch.
+  - 📄 Original Code: Pre-fix source file before bug resolution.
+
+
+4. REST API ENDPOINTS REFERENCE
+----------------------------------------------------------------------------------------------------
+- GET  `/`                              : Serves SaaS Platform Dashboard UI (`platform/public/index.html`)
+- GET  `/sdk/bug-shield-sdk.js`          : Serves Client SDK Integration Script
+- POST `/api/v1/issues`                 : Ingests end-user issue reports from connected websites
+- GET  `/api/v1/issues`                 : Retrieves all reported issues ordered by timestamp
+- GET  `/api/v1/issues/:id/patch`       : Retrieves patch diff, original code, and updated code for an issue
+- POST `/api/v1/issues/:id/approve`     : Grants admin authorization for high-risk patches
+- GET  `/api/v1/apps`                   : Lists all registered customer applications
+- POST `/api/v1/apps`                   : Registers a new customer application and generates SDK key
+
+
+5. QUICK START / RUNNING LOCALLY
+----------------------------------------------------------------------------------------------------
+1. Start Platform Server:
+   `npm start`  or  `node server.js`
+2. Open Dashboard UI in Browser:
+   `http://localhost:3000`
+3. Connect New Website:
+   Click "+ Connect New Website", enter website name, copy integration snippet:
+   `<script src="http://localhost:3000/sdk/bug-shield-sdk.js"></script>`
+   `<script>BugShieldSDK.init({ appId: 'APP-XXX', sdkKey: 'sdk_app_xxx_live' });</script>`
+4. Test Issue Reporting & Auto-Patching:
+   Click "Report an Issue" widget on connected website, submit bug report, and watch the 5-Agent 
+   orchestration, human approval gate, live hot-patching, and automated git push in real time!
+====================================================================================================

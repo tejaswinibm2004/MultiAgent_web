@@ -190,18 +190,78 @@
     }
     .terminal-line { margin-bottom: 4px; line-height: 1.5; }
 
-    /* Diff View */
-    .diff-box {
+    /* Diff & Code Viewer Styles */
+    .code-viewer-container {
       background: #04070d;
       border: 1px solid var(--card-border);
       border-radius: 10px;
+      overflow: hidden;
+    }
+    .code-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .file-path-badge {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    .code-tabs {
+      display: flex;
+      gap: 6px;
+    }
+    .code-tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .code-tab-btn:hover { background: rgba(99, 102, 241, 0.2); color: white; }
+    .code-tab-btn.active {
+      background: var(--accent-indigo);
+      color: white;
+      border-color: var(--accent-indigo);
+    }
+    .diff-box {
       font-family: 'Fira Code', monospace;
       font-size: 12px;
       padding: 14px;
       white-space: pre-wrap;
-      max-height: 160px;
+      max-height: 220px;
       overflow-y: auto;
-      color: #a7f3d0;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .diff-line-add { color: #34d399; background: rgba(16, 185, 129, 0.12); display: block; padding: 1px 4px; border-radius: 3px; }
+    .diff-line-remove { color: #f87171; background: rgba(239, 68, 68, 0.12); display: block; padding: 1px 4px; border-radius: 3px; }
+    .diff-line-header { color: #38bdf8; font-weight: 600; }
+
+    /* Code Modal */
+    .modal-code-body {
+      max-height: 400px;
+      overflow-y: auto;
+      background: #04070d;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      white-space: pre-wrap;
     }
 
     /* App Cards Table */
@@ -326,9 +386,20 @@
           </div>
         </div>
         <div>
-          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Synthesized Patch Code Diff</label>
-          <div class="diff-box" id="patch-diff-box">
-            // No patch generated yet. Waiting for bug detection trigger...
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Source Code & Patch Inspector</label>
+            <span class="file-path-badge" id="active-target-file">Target File: None</span>
+          </div>
+          <div class="code-viewer-container">
+            <div class="code-header-bar">
+              <div class="code-tabs">
+                <button class="code-tab-btn active" id="tab-btn-diff" onclick="switchPatchTab('diff')">🔀 Git Diff</button>
+                <button class="code-tab-btn" id="tab-btn-patched" onclick="switchPatchTab('patched')">✨ Patched Code</button>
+                <button class="code-tab-btn" id="tab-btn-original" onclick="switchPatchTab('original')">📄 Original Code</button>
+              </div>
+              <span style="font-size:11px; color:var(--text-secondary);" id="patch-desc-label">No patch loaded</span>
+            </div>
+            <div class="diff-box" id="patch-diff-box">// Waiting for bug report detection...</div>
           </div>
         </div>
       </div>
@@ -361,6 +432,7 @@
               <th>Issue Summary</th>
               <th>Risk</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="issues-table-body">
@@ -372,10 +444,128 @@
 
   </div>
 
+  <!-- Modal for Source Code & Website Patch Inspection -->
+  <div class="bugshield-modal-backdrop" id="code-modal">
+    <div class="bugshield-modal-card" style="max-width: 840px;">
+      <div class="bugshield-header">
+        <div>
+          <h3 class="bugshield-title" id="code-modal-title">Source Code & Website Changes</h3>
+          <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;" id="code-modal-subtitle">Target file & patch details</div>
+        </div>
+        <button class="bugshield-close" onclick="closeCodeModal()">&times;</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="code-tabs">
+          <button class="code-tab-btn active" id="modal-tab-diff" onclick="switchModalTab('diff')">🔀 Git Diff</button>
+          <button class="code-tab-btn" id="modal-tab-patched" onclick="switchModalTab('patched')">✨ Patched Code</button>
+          <button class="code-tab-btn" id="modal-tab-original" onclick="switchModalTab('original')">📄 Original Code</button>
+        </div>
+        <span class="file-path-badge" id="modal-target-file">File: --</span>
+      </div>
+      <div class="modal-code-body" id="modal-code-content">Loading patch data...</div>
+    </div>
+  </div>
+
   <script>
     const BACKEND_URL = window.BACKEND_URL || window.location.origin;
     let activeIssueId = null;
     let ws;
+
+    // Current active patch object in live inspector
+    let currentLivePatch = null;
+    let currentModalPatch = null;
+    let currentLiveTab = 'diff';
+    let currentModalTab = 'diff';
+
+    function renderDiffLines(text) {
+      if (!text) return '<span style="color:#64748b;">No code data available</span>';
+      return text.split('\n').map(line => {
+        if (line.startsWith('+') && !line.startsWith('+++')) {
+          return `<span class="diff-line-add">${escapeHtml(line)}</span>`;
+        } else if (line.startsWith('-') && !line.startsWith('---')) {
+          return `<span class="diff-line-remove">${escapeHtml(line)}</span>`;
+        } else if (line.startsWith('@') || line.startsWith('---') || line.startsWith('+++')) {
+          return `<span class="diff-line-header">${escapeHtml(line)}</span>`;
+        }
+        return escapeHtml(line);
+      }).join('\n');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function switchPatchTab(tabName) {
+      currentLiveTab = tabName;
+      document.getElementById('tab-btn-diff').className = tabName === 'diff' ? 'code-tab-btn active' : 'code-tab-btn';
+      document.getElementById('tab-btn-patched').className = tabName === 'patched' ? 'code-tab-btn active' : 'code-tab-btn';
+      document.getElementById('tab-btn-original').className = tabName === 'original' ? 'code-tab-btn active' : 'code-tab-btn';
+
+      const box = document.getElementById('patch-diff-box');
+      if (!currentLivePatch) {
+        box.innerHTML = '// Waiting for bug report patch generation...';
+        return;
+      }
+
+      if (tabName === 'diff') {
+        box.innerHTML = renderDiffLines(currentLivePatch.diff || '// No diff');
+      } else if (tabName === 'patched') {
+        box.innerHTML = escapeHtml(currentLivePatch.updatedCode || '// Patched code');
+      } else if (tabName === 'original') {
+        box.innerHTML = escapeHtml(currentLivePatch.originalCode || '// Original code');
+      }
+    }
+
+    function switchModalTab(tabName) {
+      currentModalTab = tabName;
+      document.getElementById('modal-tab-diff').className = tabName === 'diff' ? 'code-tab-btn active' : 'code-tab-btn';
+      document.getElementById('modal-tab-patched').className = tabName === 'patched' ? 'code-tab-btn active' : 'code-tab-btn';
+      document.getElementById('modal-tab-original').className = tabName === 'original' ? 'code-tab-btn active' : 'code-tab-btn';
+
+      const modalContent = document.getElementById('modal-code-content');
+      if (!currentModalPatch) {
+        modalContent.innerHTML = '// No patch data found for this issue.';
+        return;
+      }
+
+      if (tabName === 'diff') {
+        modalContent.innerHTML = renderDiffLines(currentModalPatch.diff || '// No diff available');
+      } else if (tabName === 'patched') {
+        modalContent.innerHTML = escapeHtml(currentModalPatch.updatedCode || '// No updated code');
+      } else if (tabName === 'original') {
+        modalContent.innerHTML = escapeHtml(currentModalPatch.originalCode || '// No original code');
+      }
+    }
+
+    async function viewIssueCodeModal(issueId) {
+      document.getElementById('code-modal-title').textContent = `Source Code & Patch for #${issueId}`;
+      document.getElementById('code-modal-subtitle').textContent = `Fetching patch from AI pipeline...`;
+      document.getElementById('modal-target-file').textContent = `File: Loading...`;
+      document.getElementById('modal-code-content').textContent = `Loading source code patch...`;
+      document.getElementById('code-modal').classList.add('open');
+
+      try {
+        const res = await fetch(`/api/v1/issues/${issueId}/patch`);
+        const patch = await res.json();
+        currentModalPatch = patch;
+
+        if (patch) {
+          document.getElementById('code-modal-subtitle').textContent = patch.description || 'Patch synthesized cleanly by AI Patch Generation Agent.';
+          document.getElementById('modal-target-file').textContent = `File: ${patch.targetFileRel || 'src/file.js'}`;
+          switchModalTab(currentModalTab);
+        } else {
+          document.getElementById('code-modal-subtitle').textContent = `No code patch recorded for this issue report.`;
+          document.getElementById('modal-target-file').textContent = `File: N/A`;
+          document.getElementById('modal-code-content').innerHTML = `<span style="color:#94a3b8;">No patch generated for this report (e.g. invalid report or analysis step failed).</span>`;
+        }
+      } catch (err) {
+        document.getElementById('modal-code-content').textContent = `Error loading patch: ` + err.message;
+      }
+    }
+
+    function closeCodeModal() {
+      document.getElementById('code-modal').classList.remove('open');
+    }
 
     function connectWebSocket() {
       const backendHost = BACKEND_URL.replace(/^https?:\/\//, '');
@@ -448,8 +638,11 @@
           node.className = 'agent-node completed';
           statusEl.textContent = 'Completed';
 
-          if (step === 'PATCH_GENERATION' && result && result.diff) {
-            document.getElementById('patch-diff-box').textContent = result.diff;
+          if (step === 'PATCH_GENERATION' && result) {
+            currentLivePatch = result;
+            document.getElementById('active-target-file').textContent = `Target File: ${result.targetFileRel || 'Source'}`;
+            document.getElementById('patch-desc-label').textContent = result.description || 'Patch synthesized';
+            switchPatchTab(currentLiveTab);
           }
         }
       }
@@ -574,7 +767,7 @@
 
         const tbody = document.getElementById('issues-table-body');
         if (issues.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" style="color: var(--text-secondary); text-align:center;">No issues reported yet. Click "Report an Issue" on QuickShop or BiteDash.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" style="color: var(--text-secondary); text-align:center;">No issues reported yet. Click "Report an Issue" on QuickShop or BiteDash.</td></tr>';
           return;
         }
 
@@ -598,6 +791,9 @@
               <td>${i.title}</td>
               <td><span class="badge ${riskBadgeClass}">${i.riskLevel || 'NONE'}</span></td>
               <td><span class="badge ${statusBadgeClass}">${statusLabel}</span></td>
+              <td>
+                <button class="btn-action" onclick="viewIssueCodeModal('${i.id}')" style="font-size:11px; padding:4px 8px;">🔍 View Code & Patch</button>
+              </td>
             </tr>
           `;
         }).join('');
