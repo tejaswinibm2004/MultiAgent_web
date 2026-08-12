@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { execSync } from 'child_process';
 
 export class CanaryDeploymentAgent {
   constructor() {
@@ -33,6 +34,17 @@ export class CanaryDeploymentAgent {
       fs.writeFileSync(patchResult.fullFilePath, patchResult.updatedCode, 'utf-8');
       writeSuccess = true;
       logs.push(`[${this.name}] SUCCESS: Source file successfully updated on live customer application server.`);
+
+      // Automated Git Commit & Push to Remote Repository
+      try {
+        logs.push(`[${this.name}] Committing hot-patch fix to Git repository...`);
+        execSync(`git add "${patchResult.fullFilePath}"`);
+        execSync(`git commit -m "fix(bugshield): automated hot-patch fix for ${patchResult.targetFileRel}"`);
+        execSync(`git push origin main`);
+        logs.push(`[${this.name}] 🚀 GIT PUSH SUCCESS: Automated patch committed and pushed to remote GitHub repository!`);
+      } catch (gitErr) {
+        logs.push(`[${this.name}] Git auto-push note: ${gitErr.message.split('\n')[0]}`);
+      }
     } catch (err) {
       logs.push(`[${this.name}] ERROR writing patch to file: ${err.message}`);
     }
