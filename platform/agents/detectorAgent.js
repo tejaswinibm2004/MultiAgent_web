@@ -24,24 +24,18 @@ export class BugDetectionAgent {
     let bugType = '';
     let targetFunction = '';
 
-    if (application.id === 'APP-SHOP-01') {
-      if (titleLower.includes('payment') || titleLower.includes('order') || descLower.includes('checkout') || stack.includes('checkoutService')) {
-        targetFileRel = 'demo-apps/quickshop/src/checkoutService.js';
-        bugType = 'UNHANDLED_PROMISE_SAVING_ORDER';
-        targetFunction = 'processCheckout';
-      } else if (titleLower.includes('coupon') || titleLower.includes('discount') || descLower.includes('nan') || stack.includes('couponService')) {
-        targetFileRel = 'demo-apps/quickshop/src/couponService.js';
-        bugType = 'COUPON_CALCULATION_DIV_ZERO';
-        targetFunction = 'applyDiscount';
-      } else {
-        targetFileRel = 'demo-apps/quickshop/src/checkoutService.js';
-        bugType = 'UNHANDLED_PROMISE_SAVING_ORDER';
-        targetFunction = 'processCheckout';
-      }
-    } else if (application.id === 'APP-FOOD-02') {
+    if (titleLower.includes('coupon') || titleLower.includes('discount') || descLower.includes('coupon') || descLower.includes('discount') || stack.includes('couponService')) {
+      targetFileRel = 'demo-apps/quickshop/src/couponService.js';
+      bugType = 'COUPON_CALCULATION_DIV_ZERO';
+      targetFunction = 'applyDiscount';
+    } else if (titleLower.includes('delivery') || titleLower.includes('distance') || titleLower.includes('shipping') || descLower.includes('delivery') || descLower.includes('distance') || descLower.includes('shipping') || stack.includes('deliveryService') || application.id === 'APP-FOOD-02') {
       targetFileRel = 'demo-apps/bitedash/src/deliveryService.js';
       bugType = 'DELIVERY_FEE_UNDEFINED_MULTIPLIER';
       targetFunction = 'calculateDeliveryFee';
+    } else if (titleLower.includes('calculation') || titleLower.includes('nan') || descLower.includes('calculation') || descLower.includes('nan')) {
+      targetFileRel = 'demo-apps/quickshop/src/couponService.js';
+      bugType = 'COUPON_CALCULATION_DIV_ZERO';
+      targetFunction = 'applyDiscount';
     } else {
       targetFileRel = 'demo-apps/quickshop/src/checkoutService.js';
       bugType = 'UNHANDLED_PROMISE_SAVING_ORDER';

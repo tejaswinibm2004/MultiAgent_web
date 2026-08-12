@@ -35,12 +35,8 @@ export async function processCheckout(cartData) {
   // Simulate payment processing step
   console.log(`[QuickShop Checkout] Processing payment for Order ${orderId}... Payment Succeeded.`);
 
-  // FIX: Properly await database insertion with error handling
-  try {
-    await saveOrderToDatabase(orderData);
-  } catch (err) {
-    console.error('Order save error:', err);
-  }
+  // BUG: Unhandled promise during database insertion - fails silently if DB fails
+  saveOrderToDatabase(orderData);
   return { success: true, orderId: orderData.id, status: 'PAID' };
 }
 
